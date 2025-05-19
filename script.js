@@ -12,17 +12,26 @@ const flipbook = document.getElementById('flipbook');
 
 function showPage(index) {
   if (index >= 0 && index < images.length) {
-    flipbook.innerHTML = `<img src="${images[index]}" alt="Page ${index + 1}">`;
+    const imgElement = document.createElement("img");
+    imgElement.src = images[index];
+        imgElement.alt = `Page ${index + 1}`;
+
+    // Add animation
+    imgElement.classList.add("flipping");
+
+    flipbook.innerHTML = ""; // clear previous content
+    flipbook.appendChild(imgElement);
+
     currentPage = index;
   }
 }
 
-function nextPage() {
-  showPage(currentPage + 1);
-}
+document.getElementById("prev").addEventListener("click", () => {
+  if (currentPage > 0) showPage(currentPage - 1);
+});
 
-function prevPage() {
-  showPage(currentPage - 1);
-}
+document.getElementById("next").addEventListener("click", () => {
+  if (currentPage < images.length - 1) showPage(currentPage + 1);
+});
 
 showPage(currentPage);

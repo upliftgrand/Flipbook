@@ -1,9 +1,23 @@
-// script.js - Main JavaScript for the Flipbook application
+// script.js - Enhanced JavaScript for Uplift Grand Flipbook
 document.addEventListener('DOMContentLoaded', function() {
-    // Configuration
-    const totalPages = 12; // Update this based on your actual number of pages
+    // Configuration - Change these values to match your book
+    const bookTitle = "Uplift Grand Magazine";
+    const totalPages = 20; // Update this based on your actual number of pages
     let zoomLevel = 1;
     let currentPage = 1;
+    
+    // Image paths - Update these with your actual image paths
+    function getPageImageUrl(pageNumber) {
+        // Cover pages
+        if (pageNumber === 1) {
+            return 'images/cover.jpg'; // Front cover
+        } else if (pageNumber === totalPages) {
+            return 'images/backcover.jpg'; // Back cover
+        } else {
+            // Regular pages - using numbered format (page2.jpg, page3.jpg, etc.)
+            return `images/page${pageNumber}.jpg`;
+        }
+    }
     
     // Create flipbook pages
     function createPages() {
@@ -11,6 +25,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Clear existing pages
         flipbook.innerHTML = '';
+        
+        // Create loading indicator
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.className = 'loading-indicator';
+        loadingIndicator.textContent = 'Loading pages...';
+        document.querySelector('.flipbook-container').appendChild(loadingIndicator);
         
         // Add pages
         for (let i = 1; i <= totalPages; i++) {
@@ -20,19 +40,41 @@ document.addEventListener('DOMContentLoaded', function() {
             if (i === 1 || i === totalPages) {
                 pageElement.className = 'hard';
                 
-                // Special styling for covers
-                if (i === 1) {
-                    pageElement.style.backgroundImage = `url('https://via.placeholder.com/800x1200/f5f5f5/333333?text=Front+Cover')`;
-                } else {
-                    pageElement.style.backgroundImage = `url('https://via.placeholder.com/800x1200/f5f5f5/333333?text=Back+Cover')`;
-                }
+                // Since we can't know if your images exist, start with placeholders
+                // and set up background images to load asynchronously
+                pageElement.style.backgroundColor = '#f0f0f0';
+                
+                const img = new Image();
+                img.onload = function() {
+                    pageElement.style.backgroundImage = `url('${getPageImageUrl(i)}')`;
+                };
+                img.onerror = function() {
+                    // If the image fails to load, use placeholder
+                    pageElement.style.backgroundImage = i === 1 ? 
+                        `url('https://via.placeholder.com/800x1200/f0f0f0/333333?text=Front+Cover')` : 
+                        `url('https://via.placeholder.com/800x1200/f0f0f0/333333?text=Back+Cover')`;
+                };
+                img.src = getPageImageUrl(i);
             } else {
                 // Regular pages
-                pageElement.style.backgroundImage = `url('https://via.placeholder.com/800x1200/ffffff/333333?text=Page+${i-1}')`;
+                pageElement.style.backgroundColor = '#fff';
+                
+                const img = new Image();
+                img.onload = function() {
+                    pageElement.style.backgroundImage = `url('${getPageImageUrl(i)}')`;
+                };
+                img.onerror = function() {
+                    // If the image fails to load, use placeholder
+                    pageElement.style.backgroundImage = `url('https://via.placeholder.com/800x1200/ffffff/333333?text=Page+${i}')`;
+                };
+                img.src = getPageImageUrl(i);
             }
             
             flipbook.appendChild(pageElement);
         }
+        
+        // Set document title
+        document.title = bookTitle;
     }
     
     // Initialize flipbook
@@ -40,37 +82,62 @@ document.addEventListener('DOMContentLoaded', function() {
         createPages();
         document.getElementById('total-pages').textContent = totalPages;
         
-        // Apply Turn.js to the flipbook
-        $('#flipbook').turn({
-            width: 922,
-            height: 600,
-            elevation: 50,
-            gradients: true,
-            autoCenter: true,
-            duration: 1000,
-            pages: totalPages,
-            when: {
-                turning: function(e, page, view) {
-                    // Update current page
-                    currentPage = page;
-                    updatePageInfo();
-                    updateThumbnails();
-                },
-                turned: function(e, page, view) {
-                    // Update UI after page turn
-                    updateNavButtons();
+        // Set a small timeout to ensure DOM is ready
+        setTimeout(function() {
+            // Apply Turn.js to the flipbook
+            $('#flipbook').turn({
+                width: 922,
+                height: 600,
+                elevation: 50,
+                gradients: true,
+                autoCenter: true,
+                duration: 1000,
+                pages: totalPages,
+                when: {
+                    turning: function(e, page, view) {
+                        // Update current page
+                        currentPage = page;
+                        updatePageInfo();
+                        updateThumbnails();
+                    },
+                    turned: function(e, page, view) {
+                        // Update UI after page turn
+                        updateNavButtons();
+                        
+                        // Remove loading indicator if present
+                        const loadingIndicator = document.querySelector('.loading-indicator');
+                        if (loadingIndicator) {
+                            loadingIndicator.remove();
+                        }
+                    },
+                    start: function(e, pageObj) {
+                        // Add a specific class during animation
+                        document.body.classList.add('turning-page');
+                    },
+                    end: function(e, pageObj) {
+                        // Remove class after animation
+                        document.body.classList.remove('turning-page');
+                    }
                 }
-            }
-        });
-        
-        // Initialize controls and thumbnails
-        initControls();
-        createThumbnails();
-        updatePageInfo();
-        updateNavButtons();
-        
-        // Initial resize
-        resizeFlipbook();
+            });
+            
+            // Initialize controls and thumbnails
+            initControls();
+            createThumbnails();
+            updatePageInfo();
+            updateNavButtons();
+            
+            // Initial resize
+            resizeFlipbook();
+            
+            // Remove loading indicator after initialization
+            setTimeout(function() {
+                const loadingIndicator = document.querySelector('.loading-indicator');
+                if (loadingIndicator) {
+                    loadingIndicator.remove();
+                }
+            }, 1000);
+        }, 100);
     }
     
     // Initialize controls
@@ -110,6 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const thumbnails = document.querySelector('.thumbnails-container');
             if (thumbnails.style.display === 'none' || thumbnails.style.display === '') {
                 thumbnails.style.display = 'flex';
+                updateThumbnails(); // Ensure active thumbnail is highlighted
             } else {
                 thumbnails.style.display = 'none';
             }
@@ -122,7 +190,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Keyboard controls
         document.addEventListener('keydown', function(e) {
-            switch(e.keyCode) {
+            // Don't process keystrokes if in an input field
+            if (e.target.tagName.toLowerCase() === 'input' || 
+                e.target.tagName.toLowerCase() === 'textarea') {
+                return;
+            }
+            
+            switch(e.keyCode || e.which) {
                 case 37: // left arrow
                     $('#flipbook').turn('previous');
                     break;
@@ -136,15 +210,55 @@ document.addEventListener('DOMContentLoaded', function() {
                     $('#flipbook').turn('page', totalPages);
                     break;
                 case 107: // plus key
+                case 187: // plus key (with shift)
                     zoomIn();
                     break;
                 case 109: // minus key
+                case 189: // minus key (without shift)
                     zoomOut();
                     break;
                 default: return;
             }
             e.preventDefault();
         });
+        
+        // Add touch swipe support for mobile
+        let startX, startY;
+        let distX, distY;
+        const threshold = 50; // Minimum distance to be considered a swipe
+        
+        document.addEventListener('touchstart', function(e) {
+            const touchobj = e.changedTouches[0];
+            startX = touchobj.pageX;
+            startY = touchobj.pageY;
+        }, false);
+        
+        document.addEventListener('touchmove', function(e) {
+            // Prevent page scroll while swiping in the flipbook area
+            if (e.target.closest('#flipbook')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        document.addEventListener('touchend', function(e) {
+            if (!e.target.closest('#flipbook')) return;
+            
+            const touchobj = e.changedTouches[0];
+            distX = touchobj.pageX - startX;
+            distY = touchobj.pageY - startY;
+            
+            // If horizontal distance is greater than vertical and greater than threshold
+            if (Math.abs(distX) > Math.abs(distY) && Math.abs(distX) > threshold) {
+                if (distX > 0) {
+                    // Swiped right, go to previous page
+                    $('#flipbook').turn('previous');
+                } else {
+                    // Swiped left, go to next page
+                    $('#flipbook').turn('next');
+                }
+                e.preventDefault();
+            }
+        }, false);
     }
     
     // Create thumbnails
@@ -158,13 +272,21 @@ document.addEventListener('DOMContentLoaded', function() {
             thumbnail.setAttribute('data-page', i);
             
             // Use the same image sources as the main pages
-            if (i === 1) {
-                thumbnail.style.backgroundImage = `url('https://via.placeholder.com/800x1200/f5f5f5/333333?text=Front+Cover')`;
-            } else if (i === totalPages) {
-                thumbnail.style.backgroundImage = `url('https://via.placeholder.com/800x1200/f5f5f5/333333?text=Back+Cover')`;
-            } else {
-                thumbnail.style.backgroundImage = `url('https://via.placeholder.com/800x1200/ffffff/333333?text=Page+${i-1}')`;
-            }
+            const img = new Image();
+            img.onload = function() {
+                thumbnail.style.backgroundImage = `url('${getPageImageUrl(i)}')`;
+            };
+            img.onerror = function() {
+                // If image fails to load, use placeholder
+                if (i === 1) {
+                    thumbnail.style.backgroundImage = `url('https://via.placeholder.com/150x200/f0f0f0/333333?text=Cover')`;
+                } else if (i === totalPages) {
+                    thumbnail.style.backgroundImage = `url('https://via.placeholder.com/150x200/f0f0f0/333333?text=Back')`;
+                } else {
+                    thumbnail.style.backgroundImage = `url('https://via.placeholder.com/150x200/ffffff/333333?text=${i}')`;
+                }
+            };
+            img.src = getPageImageUrl(i);
             
             thumbnail.addEventListener('click', function() {
                 const page = parseInt(this.getAttribute('data-page'));
@@ -187,7 +309,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Scroll the thumbnails container to center the active thumbnail
                 const container = document.querySelector('.thumbnails-container');
-                container.scrollLeft = thumb.offsetLeft - container.clientWidth / 2 + thumb.clientWidth / 2;
+                if (container.style.display !== 'none') {
+                    setTimeout(function() {
+                        container.scrollLeft = thumb.offsetLeft - container.clientWidth / 2 + thumb.clientWidth / 2;
+                    }, 100);
+                }
             }
         });
     }
@@ -279,23 +405,36 @@ document.addEventListener('DOMContentLoaded', function() {
             width = height / 0.65;
         }
         
-        $('#flipbook').turn('size', width, height);
-        
-        // Center the flipbook
-        const flipbook = document.getElementById('flipbook');
-        flipbook.style.top = ((containerHeight - height) / 2) + 'px';
-        flipbook.style.left = ((containerWidth - width) / 2) + 'px';
+        // Only resize if Turn.js is initialized
+        if ($('#flipbook').turn('is')) {
+            $('#flipbook').turn('size', width, height);
+            
+            // Center the flipbook
+            const flipbook = document.getElementById('flipbook');
+            flipbook.style.top = ((containerHeight - height) / 2) + 'px';
+            flipbook.style.left = ((containerWidth - width) / 2) + 'px';
+        }
     }
     
     // Handle window resize
+    let resizeTimer;
     window.addEventListener('resize', function() {
-        resizeFlipbook();
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            resizeFlipbook();
+        }, 250);
     });
     
     // Handle orientation change on mobile devices
     window.addEventListener('orientationchange', function() {
-        resizeFlipbook();
+        setTimeout(resizeFlipbook, 500);
     });
+    
+    // Handle fullscreen change
+    document.addEventListener('fullscreenchange', resizeFlipbook);
+    document.addEventListener('webkitfullscreenchange', resizeFlipbook);
+    document.addEventListener('mozfullscreenchange', resizeFlipbook);
+    document.addEventListener('MSFullscreenChange', resizeFlipbook);
     
     // Initialize the flipbook
     initFlipbook();

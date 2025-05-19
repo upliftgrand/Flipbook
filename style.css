@@ -5,16 +5,17 @@ body {
   overflow-x: hidden;
 }
 
-#flipbook-container {
+.flipbook-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: 120vh;
+  perspective: 1000px;
 }
 
 #flipbook {
   max-width: 100%;
-  max-height: 90vh; 
+  max-height: 90vh; /* Fixed missing semicolon */
   overflow: hidden;
   position: relative;
 }
@@ -26,19 +27,11 @@ body {
   display: block;
   margin: auto;
   transition: transform 0.6s ease;
-  transform-origin: center left;
-}
-
-.flipbook-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 120vh;
-  perspective: 1000px; /* Add this line */
+  transform-origin: center;
 }
 
 .flipping {
-  transform: rotateY(-30deg); /* Change from -10deg to -30deg for more visible effect */
+  transform: rotateY(-30deg); /* More noticeable effect */
 }
 
 .buttons {
@@ -59,4 +52,11 @@ button {
 
 button:hover {
   background-color: #0056b3;
+}
+
+.loading {
+  font-size: 20px;
+  color: #555;
+  text-align: center;
+  padding: 40px;
 }

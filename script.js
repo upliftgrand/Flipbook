@@ -3,28 +3,16 @@ const images = [
   'images/page2.png',
   'images/page3.png',
   'images/page4.png',
-  'images/page5.png',
-  'images/page6.png',
-  'images/page7.png',
-  'images/page8.png',
-  'images/page9.png',
-  'images/page10.png',
-  'images/page11.png',
-  'images/page12.png',
-  'images/page13.png',
-  'images/page14.png',
-  'images/page15.png',
-  'images/page16.png',
-  // Add more pages here as needed
+  // Add more pages as needed
 ];
 
 let currentPage = 0;
-let isAnimating = false; // Lock to prevent double-clicking
+let isAnimating = false;
 const flipbook = document.getElementById('flipbook');
 const prevBtn = document.getElementById('prev');
 const nextBtn = document.getElementById('next');
 
-// Preload all images for performance
+// Preload images
 function preloadImages() {
   for (let i = 0; i < images.length; i++) {
     const img = new Image();
@@ -32,7 +20,7 @@ function preloadImages() {
   }
 }
 
-// Optimize large images using a canvas
+// Optimize large images
 function optimizeImage(src, callback) {
   const img = new Image();
   img.onload = function () {
@@ -45,12 +33,12 @@ function optimizeImage(src, callback) {
     let height = img.height;
 
     if (width > MAX_WIDTH) {
-      height *= MAX_WIDTH / width;
+      height = height * (MAX_WIDTH / width);
       width = MAX_WIDTH;
     }
 
     if (height > MAX_HEIGHT) {
-      width *= MAX_HEIGHT / height;
+      width = width * (MAX_HEIGHT / height);
       height = MAX_HEIGHT;
     }
 
@@ -67,7 +55,6 @@ function showPage(index, direction = 'next') {
   if (index >= 0 && index < images.length && !isAnimating) {
     isAnimating = true;
 
-    // Show loading indicator
     flipbook.innerHTML = "<div class='loading'>Loading...</div>";
 
     optimizeImage(images[index], (optimizedSrc) => {
@@ -75,23 +62,19 @@ function showPage(index, direction = 'next') {
       imgElement.src = optimizedSrc;
       imgElement.alt = `Page ${index + 1}`;
 
-      // Set initial rotation direction
       if (direction === 'next') {
         imgElement.style.transform = 'rotateY(90deg)';
       } else {
         imgElement.style.transform = 'rotateY(-90deg)';
       }
 
-      // Clear old content and append new image
       flipbook.innerHTML = "";
       flipbook.appendChild(imgElement);
 
-      // Animate into view
       setTimeout(() => {
         imgElement.style.transition = 'transform 0.6s ease';
         imgElement.style.transform = 'rotateY(0deg)';
 
-        // Unlock after animation
         setTimeout(() => {
           currentPage = index;
           isAnimating = false;
@@ -107,7 +90,16 @@ function updateButtons() {
   nextBtn.disabled = currentPage >= images.length - 1;
 }
 
-// Event listeners
+// Button listeners
 prevBtn.addEventListener("click", () => {
-  if (currentPage > 0) {
-    showPage(currentPage
+  if (currentPage > 0) showPage(currentPage - 1, 'prev');
+});
+
+nextBtn.addEventListener("click", () => {
+  if (currentPage < images.length - 1) showPage(currentPage + 1, 'next');
+});
+
+// Initialize
+preloadImages();
+showPage(currentPage);
+updateButtons();

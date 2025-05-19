@@ -1,10 +1,22 @@
 /* Flipbook container */
-.flipbook-container {
+.flipbook-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 120vh;
-  perspective: 1000px; /* Enhanced 3D effect */
+  height: 100vh;
+  overflow: auto;
+  background-color: #f0f0f0;
+}
+
+.flipbook-container {
+  transform: scale(0.33); /* Adjust to match 33% zoom */
+  transform-origin: top center;
+  width: 300%;
+  height: 300%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 1000px;
 }
 
 /* Flipbook display area */
@@ -13,6 +25,14 @@
   max-height: 90vh; /* Fixed missing semicolon */
   overflow: hidden;
   position: relative;
+}
+
+#flipbook img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
 }
 
 /* Flip animation enhancement */

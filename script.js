@@ -3,15 +3,16 @@ const images = [
   'images/page2.png',
   'images/page3.png',
   'images/page4.png',
-  // Add more pages as needed
+  // Add more pages here
 ];
 
 let currentPage = 0;
-let isAnimating = false; // Flag to prevent rapid clicking
+let isAnimating = false;
 const flipbook = document.getElementById('flipbook');
 const prevBtn = document.getElementById('prev');
 const nextBtn = document.getElementById('next');
 
+// Preload images
 function preloadImages() {
   for (let i = 0; i < images.length; i++) {
     const img = new Image();
@@ -19,105 +20,44 @@ function preloadImages() {
   }
 }
 
-// Function to optimize large images
+// Optimize large images before displaying
 function optimizeImage(src, callback) {
   const img = new Image();
-  img.onload = function() {
-    // Create canvas for image processing
+  img.onload = function () {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    
-    // Set maximum dimensions while maintaining aspect ratio
+
     const MAX_WIDTH = 1200;
     const MAX_HEIGHT = 1600;
     let width = img.width;
     let height = img.height;
-    
+
     if (width > MAX_WIDTH) {
-      height = height * (MAX_WIDTH / width);
+      height *= MAX_WIDTH / width;
       width = MAX_WIDTH;
     }
-    
+
     if (height > MAX_HEIGHT) {
-      width = width * (MAX_HEIGHT / height);
+      width *= MAX_HEIGHT / height;
       height = MAX_HEIGHT;
     }
-    
-    // Set canvas dimensions and draw optimized image
+
     canvas.width = width;
     canvas.height = height;
     ctx.drawImage(img, 0, 0, width, height);
-    
-    // Return optimized data URL
+
     callback(canvas.toDataURL('image/jpeg', 0.8));
   };
   img.src = src;
 }
 
+// Show page with animation
 function showPage(index, direction = 'next') {
   if (index >= 0 && index < images.length && !isAnimating) {
     isAnimating = true;
-    
-    // Show loading indicator (optional)
     flipbook.innerHTML = "<div class='loading'>Loading...</div>";
-    
-    // Optimize the image before showing
+
     optimizeImage(images[index], (optimizedSrc) => {
       const imgElement = document.createElement("img");
       imgElement.src = optimizedSrc;
-      imgElement.alt = `Page ${index + 1}`;
-      
-      // Set initial state based on direction
-      if (direction === 'next') {
-        imgElement.style.transform = 'rotateY(90deg)';
-      } else {
-        imgElement.style.transform = 'rotateY(-90deg)';
-      }
-      
-      // Clear previous content
-      flipbook.innerHTML = "";
-      flipbook.appendChild(imgElement);
-      
-      // Force browser to recognize the new element before animating
-      setTimeout(() => {
-        imgElement.style.transition = 'transform 0.6s ease';
-        imgElement.style.transform = 'rotateY(0deg)';
-        
-        // Update current page after animation completes
-        setTimeout(() => {
-          currentPage = index;
-          isAnimating = false;
-          updateButtons();
-        }, 600);
-      }, 50);
-    });
-  }
-}
-
-function updateButtons() {
-  prevBtn.disabled = currentPage <= 0;
-  nextBtn.disabled = currentPage >= images.length - 1;
-}
-
-prevBtn.addEventListener("click", () => {
-  if (currentPage > 0) showPage(currentPage - 1, 'prev');
-});
-
-nextBtn.addEventListener("click", () => {
-  if (currentPage < images.length - 1) showPage(currentPage + 1, 'next');
-});
-
-// Initialize
-preloadImages();
-showPage(currentPage);
-updateButtons();
-
-document.getElementById("prev").addEventListener("click", () => {
-  if (currentPage > 0) showPage(currentPage - 1);
-});
-
-document.getElementById("next").addEventListener("click", () => {
-  if (currentPage < images.length - 1) showPage(currentPage + 1);
-});
-
-showPage(currentPage);
+      imgElement.alt = `Page ${

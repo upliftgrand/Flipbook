@@ -1,416 +1,206 @@
-/* Paperback Flipbook - style.css */
+/* Main styles for the flipbook application */
 
-/* Base styles and reset */
 * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-  font-family: 'Bookerly', 'Palatino', 'Georgia', serif;
-  background-color: #f0ece3;
-  color: #333;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  overflow-x: hidden;
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Book container and header */
-.book-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 1400px;
+/* Flipbook container */
+.flipbook-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    background-color: #333;
 }
 
-.book-header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.book-header h1 {
-  font-size: 32px;
-  color: #4a4a4a;
-  margin-bottom: 10px;
-}
-
-.page-counter {
-  font-size: 16px;
-  color: #666;
-}
-
-/* Book wrapper and spine */
-.book-wrapper {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 75vh;
-  perspective: 2000px;
-}
-
-.book-spine {
-  position: absolute;
-  width: 30px;
-  height: 95%;
-  background: linear-gradient(to right, #2d221e, #6b4c39, #2d221e);
-  border-radius: 3px;
-  box-shadow: -2px 0 5px rgba(0,0,0,0.2);
-  z-index: 2;
-}
-
-/* Book and pages */
-#book {
-  position: relative;
-  display: flex;
-  width: 90%;
-  height: 90%;
-  transform-style: preserve-3d;
-  transition: transform 0.3s ease;
-  transform: rotateY(0deg);
-  margin-left: 15px; /* Offset to align with spine */
-}
-
-.spread {
-  position: absolute;
-  display: flex;
-  width: 100%;
-  height: 100%;
-  transform-origin: center;
-  transform-style: preserve-3d;
-  transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  perspective: 1500px;
+#flipbook {
+    position: absolute;
+    transform-origin: center center;
+    transition: transform 0.5s ease;
 }
 
 .page {
-  position: relative;
-  width: 50%;
-  height: 100%;
-  background-color: #fff;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  overflow: hidden;
+    background-color: white;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
 }
 
-.page-left {
-  border-radius: 5px 0 0 5px;
-  box-shadow: -3px 5px 10px rgba(0,0,0,0.2);
-  border-right: 1px solid #e0e0e0;
+/* Navigation controls */
+.controls {
+    background-color: #222;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    z-index: 100;
 }
 
-.page-right {
-  border-radius: 0 5px 5px 0;
-  box-shadow: 3px 5px 10px rgba(0,0,0,0.2);
-  border-left: 1px solid #e0e0e0;
+.control-btn {
+    background-color: #444;
+    border: none;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
 }
 
-.page img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none; /* Prevent image from interfering with click events */
-  user-select: none;
+.control-btn:hover {
+    background-color: #666;
 }
 
-/* Page corners for touch/click interaction */
-.corner {
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  cursor: pointer;
-  z-index: 10;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+.control-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
 }
 
-.corner:hover {
-  opacity: 0.6;
+/* Thumbnails */
+.thumbnails-container {
+    background-color: #222;
+    height: 120px;
+    overflow-x: auto;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    gap: 5px;
+    white-space: nowrap;
 }
 
-.corner-top-right {
-  top: 0;
-  right: 0;
-  border-top: 60px solid #fafafa;
-  border-left: 60px solid transparent;
+.thumbnail {
+    height: 100px;
+    width: 70px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
 }
 
-.corner-bottom-right {
-  bottom: 0;
-  right: 0;
-  border-bottom: 60px solid #fafafa;
-  border-left: 60px solid transparent;
+.thumbnail:hover {
+    transform: translateY(-5px);
 }
 
-.corner-top-left {
-  top: 0;
-  left: 0;
-  border-top: 60px solid #fafafa;
-  border-right: 60px solid transparent;
+.thumbnail.active {
+    border-color: #4CAF50;
+    transform: translateY(-5px);
 }
 
-.corner-bottom-left {
-  bottom: 0;
-  left: 0;
-  border-bottom: 60px solid #fafafa;
-  border-right: 60px solid transparent;
+/* Zoom controls */
+.zoom-controls {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 5px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 1000;
 }
 
-/* Page turning animations */
-@keyframes turnPageForward {
-  0% {
-    transform: rotateY(0deg);
-    z-index: 10;
-  }
-  100% {
-    transform: rotateY(-180deg);
-    z-index: 10;
-  }
+/* Page info */
+.page-info {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    z-index: 1000;
 }
 
-@keyframes turnPageBackward {
-  0% {
-    transform: rotateY(-180deg);
-    z-index: 10;
-  }
-  100% {
-    transform: rotateY(0deg);
-    z-index: 10;
-  }
+/* Fullscreen styles */
+.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
 }
 
-.turn-forward {
-  animation: turnPageForward 0.8s forwards;
-  z-index: 10;
+/* Shadow effect for pages */
+.shadow {
+    box-shadow: 0 0 20px #666;
 }
 
-.turn-backward {
-  animation: turnPageBackward 0.8s forwards;
-  z-index: 10;
+/* Hard cover effect for first and last pages */
+.hard {
+    background-color: #f5f5f5;
+    box-shadow: inset 0 0 5px #666;
 }
 
 /* Loading indicator */
-.loading {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #6b4c39;
+.loading-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 5px;
+    font-size: 1rem;
+    z-index: 2000;
 }
 
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid rgba(107, 76, 57, 0.2);
-  border-top: 5px solid #6b4c39;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 15px;
+/* Hide horizontal scrollbar for thumbnails */
+.thumbnails-container::-webkit-scrollbar {
+    height: 6px;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.thumbnails-container::-webkit-scrollbar-track {
+    background: #333;
 }
 
-/* Navigation buttons */
-.controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 25px;
-  width: 100%;
+.thumbnails-container::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 3px;
 }
 
-.controls button {
-  background-color: #6b4c39;
-  color: white;
-  border: none;
-  padding: 12px 25px;
-  margin: 0 10px;
-  border-radius: 5px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-.controls button:hover {
-  background-color: #895e45;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-.controls button:disabled {
-  background-color: #ccc;
-  color: #999;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* Touch indicators that appear briefly when book loads */
-.touch-indicators {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  opacity: 0;
-  animation: fadeInOut 5s forwards;
-}
-
-@keyframes fadeInOut {
-  0% { opacity: 0; }
-  20% { opacity: 1; }
-  80% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-.touch-indicator {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #6b4c39;
-  font-weight: bold;
-}
-
-.touch-indicator.left {
-  left: 10%;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.touch-indicator.right {
-  right: 10%;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.touch-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: rgba(107, 76, 57, 0.3);
-  margin-bottom: 10px;
-  position: relative;
-}
-
-.touch-icon:before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  background-color: #6b4c39;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* Page number display */
-.page-number {
-  position: absolute;
-  bottom: 15px;
-  font-size: 14px;
-  color: #888;
-}
-
-.page-left .page-number {
-  left: 20px;
-}
-
-.page-right .page-number {
-  right: 20px;
+.thumbnails-container::-webkit-scrollbar-thumb:hover {
+    background: #888;
 }
 
 /* Responsive adjustments */
-@media (max-width: 1024px) {
-  .book-wrapper {
-    height: 60vh;
-  }
-  
-  .corner {
-    width: 50px;
-    height: 50px;
-  }
-  
-  .corner-top-right, .corner-bottom-right {
-    border-width: 50px;
-  }
-  
-  .corner-top-left, .corner-bottom-left {
-    border-width: 50px;
-  }
-}
-
 @media (max-width: 768px) {
-  .book-wrapper {
-    height: 50vh;
-  }
-  
-  .book-header h1 {
-    font-size: 24px;
-  }
-  
-  .controls button {
-    padding: 10px 20px;
-    font-size: 14px;
-  }
-  
-  .corner {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .corner-top-right, .corner-bottom-right {
-    border-width: 40px;
-  }
-  
-  .corner-top-left, .corner-bottom-left {
-    border-width: 40px;
-  }
-}
-
-@media (max-width: 480px) {
-  .book-wrapper {
-    height: 40vh;
-  }
-  
-  .book-header h1 {
-    font-size: 20px;
-  }
-  
-  .controls button {
-    padding: 8px 16px;
-    font-size: 12px;
-  }
-  
-  .page-counter {
-    font-size: 12px;
-  }
-  
-  .corner {
-    width: 30px;
-    height: 30px;
-  }
-  
-  .corner-top-right, .corner-bottom-right {
-    border-width: 30px;
-  }
-  
-  .corner-top-left, .corner-bottom-left {
-    border-width: 30px;
-  }
+    .controls {
+        padding: 5px;
+        gap: 5px;
+    }
+    
+    .control-btn {
+        padding: 5px 8px;
+        font-size: 0.9rem;
+    }
+    
+    .thumbnails-container {
+        height: 100px;
+    }
+    
+    .thumbnail {
+        height: 80px;
+        width: 56px;
+    }
 }

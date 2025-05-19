@@ -3,6 +3,18 @@ const images = [
   'images/page2.png',
   'images/page3.png',
   'images/page4.png',
+  'images/page5.png',
+  'images/page6.png',
+  'images/page7.png',
+  'images/page8.png',
+  'images/page9.png',
+  'images/page10.png',
+  'images/page11.png',
+  'images/page12.png',
+  'images/page13.png',
+  'images/page14.png',
+  'images/page15.png',
+  'images/page16.png',
   // Add more pages here as needed
 ];
 

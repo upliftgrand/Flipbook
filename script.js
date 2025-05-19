@@ -1,63 +1,20 @@
-const images = [
-  'images/page1.png',
-  'images/page2.png',
-  'images/page3.png',
-  'images/page4.png',
-  // Add more pages here
-];
-
-let currentPage = 0;
-let isAnimating = false;
-const flipbook = document.getElementById('flipbook');
-const prevBtn = document.getElementById('prev');
-const nextBtn = document.getElementById('next');
-
-// Preload images
-function preloadImages() {
-  for (let i = 0; i < images.length; i++) {
-    const img = new Image();
-    img.src = images[i];
-  }
+/* Flipbook container */
+.flipbook-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 120vh;
+  perspective: 1000px; /* Enhanced 3D effect */
 }
 
-// Optimize large images before displaying
-function optimizeImage(src, callback) {
-  const img = new Image();
-  img.onload = function () {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-
-    const MAX_WIDTH = 1200;
-    const MAX_HEIGHT = 1600;
-    let width = img.width;
-    let height = img.height;
-
-    if (width > MAX_WIDTH) {
-      height *= MAX_WIDTH / width;
-      width = MAX_WIDTH;
-    }
-
-    if (height > MAX_HEIGHT) {
-      width *= MAX_HEIGHT / height;
-      height = MAX_HEIGHT;
-    }
-
-    canvas.width = width;
-    canvas.height = height;
-    ctx.drawImage(img, 0, 0, width, height);
-
-    callback(canvas.toDataURL('image/jpeg', 0.8));
-  };
-  img.src = src;
+/* Flipbook display area */
+#flipbook {
+  max-width: 100%;
+  max-height: 90vh; /* Fixed missing semicolon */
+  overflow: hidden;
+  position: relative;
 }
 
-// Show page with animation
-function showPage(index, direction = 'next') {
-  if (index >= 0 && index < images.length && !isAnimating) {
-    isAnimating = true;
-    flipbook.innerHTML = "<div class='loading'>Loading...</div>";
-
-    optimizeImage(images[index], (optimizedSrc) => {
-      const imgElement = document.createElement("img");
-      imgElement.src = optimizedSrc;
-      imgElement.alt = `Page ${
+/* Flip animation enhancement */
+.flipping {
+  transform: rotateY(-30deg); /* More noticeable*

@@ -1,6 +1,6 @@
-/* Digital Flipbook - style.css */
+/* Paperback Flipbook - style.css */
 
-/* Basic reset and page setup */
+/* Base styles and reset */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -8,144 +8,190 @@
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f5f5f5;
+  font-family: 'Bookerly', 'Palatino', 'Georgia', serif;
+  background-color: #f0ece3;
   color: #333;
-  overflow-x: hidden;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 20px;
+  overflow-x: hidden;
 }
 
-/* Flipbook container with perspective for 3D effect */
-.flipbook-container {
-  position: relative;
-  width: 90%;
-  max-width: 1200px;
-  height: 80vh;
-  margin: 20px auto;
-  perspective: 2000px;
+/* Book container and header */
+.book-container {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-}
-
-#flipbook {
-  position: relative;
   width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  transition: transform 0.5s;
+  max-width: 1400px;
 }
 
-/* Page styling */
-.page {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  transform-origin: left center;
-  transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
-  backface-visibility: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  background: white;
+.book-header {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-/* Page animations */
-@keyframes flipInRight {
-  from {
-    transform: rotateY(70deg);
-    opacity: 0;
-    box-shadow: -5px 5px 5px rgba(0, 0, 0, 0.2);
-  }
-  to {
-    transform: rotateY(0deg);
-    opacity: 1;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  }
+.book-header h1 {
+  font-size: 32px;
+  color: #4a4a4a;
+  margin-bottom: 10px;
 }
 
-@keyframes flipOutLeft {
-  from {
-    transform: rotateY(0deg);
-    opacity: 1;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  }
-  to {
-    transform: rotateY(-70deg);
-    opacity: 0;
-    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
-  }
-}
-
-.flip-in-right {
-  animation: flipInRight 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-.flip-out-left {
-  animation: flipOutLeft 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-/* Image styling */
-.page img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  user-select: none;
-  pointer-events: none;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-/* Navigation buttons */
-.controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 20px 0;
-  width: 100%;
-}
-
-.controls button {
-  background-color: #2c3e50;
-  color: white;
-  border: none;
-  padding: 12px 25px;
-  margin: 0 10px;
-  border-radius: 5px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.controls button:hover {
-  background-color: #1a252f;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.controls button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
-}
-
-.controls button:disabled {
-  background-color: #95a5a6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* Page number indicator */
 .page-counter {
   font-size: 16px;
-  text-align: center;
-  margin-bottom: 15px;
-  color: #555;
+  color: #666;
+}
+
+/* Book wrapper and spine */
+.book-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 75vh;
+  perspective: 2000px;
+}
+
+.book-spine {
+  position: absolute;
+  width: 30px;
+  height: 95%;
+  background: linear-gradient(to right, #2d221e, #6b4c39, #2d221e);
+  border-radius: 3px;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+  z-index: 2;
+}
+
+/* Book and pages */
+#book {
+  position: relative;
+  display: flex;
+  width: 90%;
+  height: 90%;
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease;
+  transform: rotateY(0deg);
+  margin-left: 15px; /* Offset to align with spine */
+}
+
+.spread {
+  position: absolute;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transform-origin: center;
+  transform-style: preserve-3d;
+  transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  perspective: 1500px;
+}
+
+.page {
+  position: relative;
+  width: 50%;
+  height: 100%;
+  background-color: #fff;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+
+.page-left {
+  border-radius: 5px 0 0 5px;
+  box-shadow: -3px 5px 10px rgba(0,0,0,0.2);
+  border-right: 1px solid #e0e0e0;
+}
+
+.page-right {
+  border-radius: 0 5px 5px 0;
+  box-shadow: 3px 5px 10px rgba(0,0,0,0.2);
+  border-left: 1px solid #e0e0e0;
+}
+
+.page img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none; /* Prevent image from interfering with click events */
+  user-select: none;
+}
+
+/* Page corners for touch/click interaction */
+.corner {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.corner:hover {
+  opacity: 0.6;
+}
+
+.corner-top-right {
+  top: 0;
+  right: 0;
+  border-top: 60px solid #fafafa;
+  border-left: 60px solid transparent;
+}
+
+.corner-bottom-right {
+  bottom: 0;
+  right: 0;
+  border-bottom: 60px solid #fafafa;
+  border-left: 60px solid transparent;
+}
+
+.corner-top-left {
+  top: 0;
+  left: 0;
+  border-top: 60px solid #fafafa;
+  border-right: 60px solid transparent;
+}
+
+.corner-bottom-left {
+  bottom: 0;
+  left: 0;
+  border-bottom: 60px solid #fafafa;
+  border-right: 60px solid transparent;
+}
+
+/* Page turning animations */
+@keyframes turnPageForward {
+  0% {
+    transform: rotateY(0deg);
+    z-index: 10;
+  }
+  100% {
+    transform: rotateY(-180deg);
+    z-index: 10;
+  }
+}
+
+@keyframes turnPageBackward {
+  0% {
+    transform: rotateY(-180deg);
+    z-index: 10;
+  }
+  100% {
+    transform: rotateY(0deg);
+    z-index: 10;
+  }
+}
+
+.turn-forward {
+  animation: turnPageForward 0.8s forwards;
+  z-index: 10;
+}
+
+.turn-backward {
+  animation: turnPageBackward 0.8s forwards;
+  z-index: 10;
 }
 
 /* Loading indicator */
@@ -158,16 +204,17 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  color: #6b4c39;
 }
 
 .spinner {
-  border: 5px solid rgba(0, 0, 0, 0.1);
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(107, 76, 57, 0.2);
+  border-top: 5px solid #6b4c39;
   border-radius: 50%;
-  border-top: 5px solid #3498db;
-  width: 40px;
-  height: 40px;
   animation: spin 1s linear infinite;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 @keyframes spin {
@@ -175,68 +222,195 @@ body {
   100% { transform: rotate(360deg); }
 }
 
+/* Navigation buttons */
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 25px;
+  width: 100%;
+}
+
+.controls button {
+  background-color: #6b4c39;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  margin: 0 10px;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.controls button:hover {
+  background-color: #895e45;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.controls button:disabled {
+  background-color: #ccc;
+  color: #999;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Touch indicators that appear briefly when book loads */
+.touch-indicators {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  opacity: 0;
+  animation: fadeInOut 5s forwards;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.touch-indicator {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #6b4c39;
+  font-weight: bold;
+}
+
+.touch-indicator.left {
+  left: 10%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.touch-indicator.right {
+  right: 10%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.touch-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(107, 76, 57, 0.3);
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.touch-icon:before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background-color: #6b4c39;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Page number display */
+.page-number {
+  position: absolute;
+  bottom: 15px;
+  font-size: 14px;
+  color: #888;
+}
+
+.page-left .page-number {
+  left: 20px;
+}
+
+.page-right .page-number {
+  right: 20px;
+}
+
 /* Responsive adjustments */
-@media (max-width: 768px) {
-  .flipbook-container {
+@media (max-width: 1024px) {
+  .book-wrapper {
     height: 60vh;
-    width: 95%;
+  }
+  
+  .corner {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .corner-top-right, .corner-bottom-right {
+    border-width: 50px;
+  }
+  
+  .corner-top-left, .corner-bottom-left {
+    border-width: 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  .book-wrapper {
+    height: 50vh;
+  }
+  
+  .book-header h1 {
+    font-size: 24px;
   }
   
   .controls button {
-    padding: 10px 18px;
+    padding: 10px 20px;
     font-size: 14px;
+  }
+  
+  .corner {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .corner-top-right, .corner-bottom-right {
+    border-width: 40px;
+  }
+  
+  .corner-top-left, .corner-bottom-left {
+    border-width: 40px;
   }
 }
 
 @media (max-width: 480px) {
-  .flipbook-container {
-    height: 50vh;
+  .book-wrapper {
+    height: 40vh;
+  }
+  
+  .book-header h1 {
+    font-size: 20px;
   }
   
   .controls button {
-    padding: 8px 15px;
+    padding: 8px 16px;
     font-size: 12px;
   }
-}
-
-/* Page turn effect overlay */
-.page-fold {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 0;
-  height: 100%;
-  background: linear-gradient(to right, rgba(0,0,0,0.02), rgba(0,0,0,0.15));
-  opacity: 0;
-  transition: width 0.8s, opacity 0.8s;
-  pointer-events: none;
-}
-
-.turning .page-fold {
-  width: 100%;
-  opacity: 1;
-}
-
-/* Add a subtle book binding effect */
-.book-spine {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 30px;
-  height: 100%;
-  background: linear-gradient(to right, #1a1a1a, #444444, #1a1a1a);
-  transform: translateX(-15px);
-  z-index: -1;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.3);
-}
-
-/* Full screen mode */
-.fullscreen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 1000;
-  background: #f5f5f5;
+  
+  .page-counter {
+    font-size: 12px;
+  }
+  
+  .corner {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .corner-top-right, .corner-bottom-right {
+    border-width: 30px;
+  }
+  
+  .corner-top-left, .corner-bottom-left {
+    border-width: 30px;
+  }
 }

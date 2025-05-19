@@ -3,32 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Digital Flipbook</title>
+  <title>Paperback Flipbook</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Digital Flipbook</h1>
-  
-  <div class="page-counter">
-    Page <span id="current-page">1</span> of <span id="total-pages">0</span>
-  </div>
-  
-  <div class="flipbook-container">
-    <div class="book-spine"></div>
-    <div id="flipbook">
-      <div class="loading">
-        <div class="spinner"></div>
-        <p>Loading pages...</p>
+  <div class="book-container">
+    <!-- Book header with title and page counter -->
+    <div class="book-header">
+      <h1>Digital Paperback</h1>
+      <div class="page-counter">
+        Pages <span id="current-pages">0-1</span> of <span id="total-pages">0</span>
+      </div>
+    </div>
+    
+    <!-- The book itself -->
+    <div class="book-wrapper">
+      <!-- Book binding/spine -->
+      <div class="book-spine"></div>
+      
+      <!-- The book with pages -->
+      <div id="book">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Loading your book...</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Navigation controls -->
+    <div class="controls">
+      <button id="prev-btn" disabled>⟨ Previous</button>
+      <button id="next-btn">Next ⟩</button>
+      <button id="fullscreen-btn">Full Screen</button>
+    </div>
+    
+    <!-- Touch indicators that appear briefly when book loads -->
+    <div class="touch-indicators">
+      <div class="touch-indicator left">
+        <div class="touch-icon"></div>
+        <span>Touch to go back</span>
+      </div>
+      <div class="touch-indicator right">
+        <div class="touch-icon"></div>
+        <span>Touch to go forward</span>
       </div>
     </div>
   </div>
-  
-  <div class="controls">
-    <button id="prev" disabled>⟨ Previous Page</button>
-    <button id="next">Next Page ⟩</button>
-    <button id="fullscreen">Full Screen</button>
-  </div>
-  
+
   <script src="script.js"></script>
 </body>
 </html>

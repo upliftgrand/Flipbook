@@ -1,26 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digital Flipbook</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <!-- Flipbook Wrapper -->
-  <div class="flipbook-wrapper">
-    <div class="flipbook-container">
-      <div id="flipbook"></div>
+  <h1>Digital Flipbook</h1>
+  
+  <div class="page-counter">
+    Page <span id="current-page">1</span> of <span id="total-pages">0</span>
+  </div>
+  
+  <div class="flipbook-container">
+    <div class="book-spine"></div>
+    <div id="flipbook">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Loading pages...</p>
+      </div>
     </div>
   </div>
-
-  <!-- Navigation Buttons -->
-  <div class="buttons">
-    <button id="prev">⟨ Prev</button>
-    <button id="next">Next ⟩</button>
+  
+  <div class="controls">
+    <button id="prev" disabled>⟨ Previous Page</button>
+    <button id="next">Next Page ⟩</button>
+    <button id="fullscreen">Full Screen</button>
   </div>
-
+  
   <script src="script.js"></script>
 </body>
 </html>

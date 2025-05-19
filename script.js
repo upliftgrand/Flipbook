@@ -1,32 +1,33 @@
-// Digital Flipbook - script.js
+// Paperback Flipbook - script.js
 
-// Configuration
+// Configuration - Update these values to match your images
 const imageFolder = 'images/';
 const imagePrefix = 'page';
-const imageExtension = '.png';
-const totalImages = 4; // Update this with your total image count
+const imageExtension = '.png'; 
+const totalImages = 10; // Update this to match your actual number of pages
 
 // State management
-let currentPage = 0;
+let currentSpread = 0; // Current two-page spread (0 = pages 0-1, 1 = pages 2-3, etc.)
 let isAnimating = false;
 let isFullscreen = false;
 let preloadedImages = [];
-let imageAspectRatios = [];
-let pageWidth, pageHeight;
+let maxSpreads = Math.ceil(totalImages / 2);
 
 // DOM elements
-const flipbook = document.getElementById('flipbook');
-const prevButton = document.getElementById('prev');
-const nextButton = document.getElementById('next');
-const fullscreenButton = document.getElementById('fullscreen');
-const currentPageEl = document.getElementById('current-page');
+const book = document.getElementById('book');
+const prevBtn = document.getElementById('prev-btn');
+const nextBtn = document.getElementById('next-btn');
+const fullscreenBtn = document.getElementById('fullscreen-btn');
+const currentPagesEl = document.getElementById('current-pages');
 const totalPagesEl = document.getElementById('total-pages');
-const flipbookContainer = document.querySelector('.flipbook-container');
+const bookWrapper = document.querySelector('.book-wrapper');
 
 // Set total page count in UI
 totalPagesEl.textContent = totalImages;
 
-// Preload all images and calculate their optimal dimensions
+/**
+ * Preload all images and store them for faster access
+ */
 function preloadImages() {
   const loadingEl = document.querySelector('.loading');
   let loadedCount = 0;
@@ -36,23 +37,24 @@ function preloadImages() {
     const img = new Image();
 
     img.onload = function() {
-      // Store the image's aspect ratio for later use
-      imageAspectRatios[i-1] = img.width / img.height;
-      
-      // Create optimized version using canvas
+      // Store optimized version
       preloadedImages[i-1] = optimizeImage(img);
       
       loadedCount++;
       if (loadingEl) {
         loadingEl.innerHTML = `<div class="spinner"></div>
-                             <p>Loading pages... ${Math.round((loadedCount / totalImages) * 100)}%</p>`;
+                              <p>Loading pages... ${Math.round((loadedCount / totalImages) * 100)}%</p>`;
       }
       
-      // When all images are loaded, show the first page
+      // When all images are loaded, show the first spread
       if (loadedCount === totalImages) {
-        if (loadingEl) flipbook.removeChild(loadingEl);
-        showPage(0);
-        adjustSizeToScreen();
+        if (loadingEl) book.removeChild(loadingEl);
+        createBook();
+        showSpread(0);
+        // Briefly show touch indicators
+        setTimeout(() => {
+          document.querySelector('.touch-indicators').style.opacity = '1';
+        }, 500);
       }
     };
 
@@ -69,14 +71,16 @@ function preloadImages() {
   }
 }
 
-// Optimize large images for better performance
+/**
+ * Optimize large images for better performance
+ */
 function optimizeImage(img) {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   
-  // Calculate optimal dimensions while maintaining aspect ratio
-  const MAX_WIDTH = 1600;  // Maximum width for large displays
-  const MAX_HEIGHT = 1200; // Maximum height for large displays
+  // Calculate optimal dimensions while preserving aspect ratio
+  const MAX_WIDTH = 1000;  // Adjust based on your needs
+  const MAX_HEIGHT = 1500; // Adjust based on your needs
   let width = img.width;
   let height = img.height;
   
@@ -96,125 +100,206 @@ function optimizeImage(img) {
   // Draw the image at optimized dimensions
   ctx.drawImage(img, 0, 0, width, height);
   
-  // Return optimized data URL
-  return canvas.toDataURL('image/jpeg', 0.85); // Use 0.85 quality for good balance
+  // Return optimized data URL (use higher quality for better appearance)
+  return canvas.toDataURL('image/jpeg', 0.9);
 }
 
-// Calculate optimal dimensions based on screen and aspect ratio
-function calculateOptimalDimensions(index) {
-  // Get container dimensions
-  const containerWidth = flipbookContainer.clientWidth;
-  const containerHeight = flipbookContainer.clientHeight;
+/**
+ * Create initial book structure with all spreads
+ */
+function createBook() {
+  book.innerHTML = '';
   
-  // Calculate available space (accounting for margins)
-  const availableWidth = containerWidth * 0.9;
-  const availableHeight = containerHeight * 0.9;
+  // Calculate total number of spreads
+  maxSpreads = Math.ceil(totalImages / 2);
   
-  // Get the aspect ratio for this image
-  const aspectRatio = imageAspectRatios[index] || 0.75; // Default to 3:4 if not known
+  // Create spreads (each with two pages)
+  for (let i = 0; i < maxSpreads; i++) {
+    const leftPageNum = i * 2;
+    const rightPageNum = i * 2 + 1;
+    
+    const spread = document.createElement('div');
+    spread.className = 'spread';
+    spread.id = `spread-${i}`;
+    spread.style.zIndex = maxSpreads - i;
+    spread.style.display = 'none'; // Hide all spreads initially
+    
+    // Left page (even number)
+    if (leftPageNum < totalImages) {
+      const leftPage = createPageElement(leftPageNum, 'left');
+      spread.appendChild(leftPage);
+    }
+    
+    // Right page (odd number)
+    if (rightPageNum < totalImages) {
+      const rightPage = createPageElement(rightPageNum, 'right');
+      spread.appendChild(rightPage);
+    }
+    
+    book.appendChild(spread);
+  }
+}
+
+/**
+ * Create a page element with image and page number
+ */
+function createPageElement(pageIndex, position) {
+  const pageDiv = document.createElement('div');
+  pageDiv.className = `page page-${position}`;
   
-  // Calculate dimensions that fit within container while maintaining aspect ratio
-  if (availableWidth / aspectRatio <= availableHeight) {
-    // Width constrained
-    pageWidth = availableWidth;
-    pageHeight = availableWidth / aspectRatio;
+  // Page content (image)
+  const img = document.createElement('img');
+  img.src = preloadedImages[pageIndex];
+  img.alt = `Page ${pageIndex + 1}`;
+  pageDiv.appendChild(img);
+  
+  // Page number
+  const pageNumber = document.createElement('div');
+  pageNumber.className = 'page-number';
+  pageNumber.textContent = pageIndex + 1;
+  pageDiv.appendChild(pageNumber);
+  
+  // Add corner elements for navigation
+  if (position === 'left') {
+    // Add left page corners
+    const topLeftCorner = document.createElement('div');
+    topLeftCorner.className = 'corner corner-top-left';
+    topLeftCorner.addEventListener('click', goToPreviousSpread);
+    
+    const bottomLeftCorner = document.createElement('div');
+    bottomLeftCorner.className = 'corner corner-bottom-left';
+    bottomLeftCorner.addEventListener('click', goToPreviousSpread);
+    
+    pageDiv.appendChild(topLeftCorner);
+    pageDiv.appendChild(bottomLeftCorner);
   } else {
-    // Height constrained
-    pageHeight = availableHeight;
-    pageWidth = availableHeight * aspectRatio;
+    // Add right page corners
+    const topRightCorner = document.createElement('div');
+    topRightCorner.className = 'corner corner-top-right';
+    topRightCorner.addEventListener('click', goToNextSpread);
+    
+    const bottomRightCorner = document.createElement('div');
+    bottomRightCorner.className = 'corner corner-bottom-right';
+    bottomRightCorner.addEventListener('click', goToNextSpread);
+    
+    pageDiv.appendChild(topRightCorner);
+    pageDiv.appendChild(bottomRightCorner);
   }
   
-  return { width: pageWidth, height: pageHeight };
+  return pageDiv;
 }
 
-// Create page element with appropriate dimensions
-function createPageElement(index, animation) {
-  const page = document.createElement('div');
-  page.className = `page ${animation || ''}`;
-
-  // Calculate optimal dimensions for this page
-  const dimensions = calculateOptimalDimensions(index);
+/**
+ * Show a specific spread (two pages) with animation
+ */
+function showSpread(index) {
+  if (index < 0 || index >= maxSpreads || isAnimating) return;
   
-  // Apply dimensions
-  page.style.width = `${dimensions.width}px`;
-  page.style.height = `${dimensions.height}px`;
+  // Hide all spreads first
+  const allSpreads = document.querySelectorAll('.spread');
+  allSpreads.forEach(spread => {
+    spread.style.display = 'none';
+  });
   
-  // Create image element
-  const img = document.createElement('img');
-  img.src = preloadedImages[index];
-  img.alt = `Page ${index + 1}`;
+  // Show current spread
+  const currentSpreadEl = document.getElementById(`spread-${index}`);
+  if (currentSpreadEl) {
+    currentSpreadEl.style.display = 'flex';
+  }
   
-  // Add page fold effect layer
-  const pageFold = document.createElement('div');
-  pageFold.className = 'page-fold';
+  // Update page counter
+  const startPage = index * 2 + 1;
+  const endPage = Math.min(startPage + 1, totalImages);
+  currentPagesEl.textContent = `${startPage}-${endPage}`;
   
-  // Add elements to page
-  page.appendChild(img);
-  page.appendChild(pageFold);
+  // Update current spread index
+  currentSpread = index;
   
-  return page;
+  // Update button states
+  updateButtonStates();
 }
 
-// Display a specific page with animation
-function showPage(index, direction = 'next') {
-  if (index < 0 || index >= totalImages || isAnimating) return;
-  
+/**
+ * Handle page turn animation
+ */
+function turnPage(direction) {
+  if (isAnimating) return;
   isAnimating = true;
   
-  // Create page element with appropriate animation class
-  const animation = direction === 'next' ? 'flip-in-right' : 'flip-out-left';
-  const page = createPageElement(index, animation);
+  const currentSpreadEl = document.getElementById(`spread-${currentSpread}`);
+  const newSpreadIndex = direction === 'next' ? currentSpread + 1 : currentSpread - 1;
   
-  // Clear previous content and add new page
-  flipbook.innerHTML = '';
-  flipbook.appendChild(page);
-  
-  // Add turning class to activate page fold effect
-  page.classList.add('turning');
-  
-  // Handle animation end
-  page.addEventListener('animationend', () => {
-    page.classList.remove('turning');
+  if (newSpreadIndex < 0 || newSpreadIndex >= maxSpreads) {
     isAnimating = false;
-    
-    // Update state and UI
-    currentPage = index;
-    currentPageEl.textContent = currentPage + 1;
-    updateButtonState();
-  });
-}
-
-// Update navigation button state
-function updateButtonState() {
-  prevButton.disabled = currentPage === 0;
-  nextButton.disabled = currentPage === totalImages - 1;
-}
-
-// Adjust flipbook size when window is resized
-function adjustSizeToScreen() {
-  if (currentPage >= 0 && currentPage < totalImages) {
-    const page = flipbook.querySelector('.page');
-    if (page) {
-      const dimensions = calculateOptimalDimensions(currentPage);
-      page.style.width = `${dimensions.width}px`;
-      page.style.height = `${dimensions.height}px`;
+    return;
+  }
+  
+  // Apply turning animation to current spread
+  if (direction === 'next') {
+    currentSpreadEl.classList.add('turn-forward');
+  } else {
+    const prevSpreadEl = document.getElementById(`spread-${newSpreadIndex}`);
+    prevSpreadEl.style.display = 'flex';
+    prevSpreadEl.classList.add('turn-backward');
+  }
+  
+  // After animation completes
+  setTimeout(() => {
+    if (direction === 'next') {
+      currentSpreadEl.classList.remove('turn-forward');
+      currentSpreadEl.style.display = 'none';
+    } else {
+      const prevSpreadEl = document.getElementById(`spread-${newSpreadIndex}`);
+      prevSpreadEl.classList.remove('turn-backward');
+      currentSpreadEl.style.display = 'none';
     }
+    
+    showSpread(newSpreadIndex);
+    isAnimating = false;
+  }, 800); // Match animation duration
+}
+
+/**
+ * Navigate to next spread
+ */
+function goToNextSpread() {
+  if (currentSpread < maxSpreads - 1 && !isAnimating) {
+    turnPage('next');
   }
 }
 
-// Handle full screen mode
+/**
+ * Navigate to previous spread
+ */
+function goToPreviousSpread() {
+  if (currentSpread > 0 && !isAnimating) {
+    turnPage('prev');
+  }
+}
+
+/**
+ * Update navigation button states
+ */
+function updateButtonStates() {
+  prevBtn.disabled = currentSpread <= 0;
+  nextBtn.disabled = currentSpread >= maxSpreads - 1;
+}
+
+/**
+ * Toggle fullscreen mode
+ */
 function toggleFullscreen() {
   if (!isFullscreen) {
-    if (flipbookContainer.requestFullscreen) {
-      flipbookContainer.requestFullscreen();
-    } else if (flipbookContainer.mozRequestFullScreen) {
-      flipbookContainer.mozRequestFullScreen();
-    } else if (flipbookContainer.webkitRequestFullscreen) {
-      flipbookContainer.webkitRequestFullscreen();
-    } else if (flipbookContainer.msRequestFullscreen) {
-      flipbookContainer.msRequestFullscreen();
+    if (bookWrapper.requestFullscreen) {
+      bookWrapper.requestFullscreen();
+    } else if (bookWrapper.mozRequestFullScreen) {
+      bookWrapper.mozRequestFullScreen();
+    } else if (bookWrapper.webkitRequestFullscreen) {
+      bookWrapper.webkitRequestFullscreen();
+    } else if (bookWrapper.msRequestFullscreen) {
+      bookWrapper.msRequestFullscreen();
     }
-    flipbookContainer.classList.add('fullscreen');
+    bookWrapper.classList.add('fullscreen');
   } else {
     if (document.exitFullscreen) {
       document.exitFullscreen();
@@ -225,48 +310,72 @@ function toggleFullscreen() {
     } else if (document.msExitFullscreen) {
       document.msExitFullscreen();
     }
-    flipbookContainer.classList.remove('fullscreen');
+    bookWrapper.classList.remove('fullscreen');
   }
   isFullscreen = !isFullscreen;
-  
-  // Give the browser a moment to adjust before recalculating dimensions
-  setTimeout(adjustSizeToScreen, 100);
+}
+
+/**
+ * Handle fullscreen change events
+ */
+function handleFullscreenChange() {
+  isFullscreen = !!document.fullscreenElement || 
+                 !!document.mozFullScreenElement || 
+                 !!document.webkitFullscreenElement || 
+                 !!document.msFullscreenElement;
 }
 
 // Event Listeners
-prevButton.addEventListener('click', () => {
-  if (currentPage > 0 && !isAnimating) {
-    showPage(currentPage - 1, 'prev');
-  }
-});
-
-nextButton.addEventListener('click', () => {
-  if (currentPage < totalImages - 1 && !isAnimating) {
-    showPage(currentPage + 1, 'next');
-  }
-});
-
-fullscreenButton.addEventListener('click', toggleFullscreen);
+prevBtn.addEventListener('click', goToPreviousSpread);
+nextBtn.addEventListener('click', goToNextSpread);
+fullscreenBtn.addEventListener('click', toggleFullscreen);
 
 // Keyboard navigation
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowLeft' && currentPage > 0 && !isAnimating) {
-    showPage(currentPage - 1, 'prev');
-  } else if (e.key === 'ArrowRight' && currentPage < totalImages - 1 && !isAnimating) {
-    showPage(currentPage + 1, 'next');
+  if (e.key === 'ArrowLeft' && !prevBtn.disabled) {
+    goToPreviousSpread();
+  } else if (e.key === 'ArrowRight' && !nextBtn.disabled) {
+    goToNextSpread();
   } else if (e.key === 'f' || e.key === 'F') {
     toggleFullscreen();
   }
 });
 
-// Handle fullscreen change events
-document.addEventListener('fullscreenchange', adjustSizeToScreen);
-document.addEventListener('mozfullscreenchange', adjustSizeToScreen);
-document.addEventListener('webkitfullscreenchange', adjustSizeToScreen);
-document.addEventListener('msfullscreenchange', adjustSizeToScreen);
+// Fullscreen change events
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+document.addEventListener('msfullscreenchange', handleFullscreenChange);
 
-// Window resize event
-window.addEventListener('resize', adjustSizeToScreen);
+// Window resize event to adjust book dimensions if needed
+window.addEventListener('resize', () => {
+  // If needed, add code here to adjust book dimensions on window resize
+});
 
-// Initialize
+// Touch events for mobile swipe gestures (optional enhancement)
+let touchStartX = 0;
+let touchEndX = 0;
+
+bookWrapper.addEventListener('touchstart', (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+});
+
+bookWrapper.addEventListener('touchend', (e) => {
+  touchEndX = e.changedTouches[0].screenX;
+  handleSwipe();
+});
+
+function handleSwipe() {
+  const swipeThreshold = 50; // Minimum distance for swipe
+  if (touchEndX < touchStartX - swipeThreshold) {
+    // Swipe left - go to next page
+    goToNextSpread();
+  }
+  if (touchEndX > touchStartX + swipeThreshold) {
+    // Swipe right - go to previous page
+    goToPreviousSpread();
+  }
+}
+
+// Initialize the flipbook
 preloadImages();

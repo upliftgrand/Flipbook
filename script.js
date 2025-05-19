@@ -19,32 +19,78 @@ function preloadImages() {
   }
 }
 
-function showPage(index, direction = 'next') {
-  if (index >= 0 && index < images.length && !isAnimating) {
-    isAnimating = true; 
-
-    const imgElement = document.createElement("img");
-    imgElement.src = images[index];
-    imgElement.alt = `Page ${index + 1}`;
-
-   if (direction === 'next') {
-      imgElement.style.transform = 'rotateY(90deg)';
-    } else {
-      imgElement.style.transform = 'rotateY(-90deg)';
+// Function to optimize large images
+function optimizeImage(src, callback) {
+  const img = new Image();
+  img.onload = function() {
+    // Create canvas for image processing
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set maximum dimensions while maintaining aspect ratio
+    const MAX_WIDTH = 1200;
+    const MAX_HEIGHT = 1600;
+    let width = img.width;
+    let height = img.height;
+    
+    if (width > MAX_WIDTH) {
+      height = height * (MAX_WIDTH / width);
+      width = MAX_WIDTH;
     }
     
-    // Add animation
-    imgElement.classList.add("flipping");
+    if (height > MAX_HEIGHT) {
+      width = width * (MAX_HEIGHT / height);
+      height = MAX_HEIGHT;
+    }
+    
+    // Set canvas dimensions and draw optimized image
+    canvas.width = width;
+    canvas.height = height;
+    ctx.drawImage(img, 0, 0, width, height);
+    
+    // Return optimized data URL
+    callback(canvas.toDataURL('image/jpeg', 0.8));
+  };
+  img.src = src;
+}
 
-   flipbook.innerHTML = "";
-    flipbook.appendChild(imgElement);
-
-    setTimeout(() => {
-        currentPage = index;
-        isAnimating = false; // Unlock after animation
-        updateButtons();
-      }, 600);
-    }, 50);
+function showPage(index, direction = 'next') {
+  if (index >= 0 && index < images.length && !isAnimating) {
+    isAnimating = true;
+    
+    // Show loading indicator (optional)
+    flipbook.innerHTML = "<div class='loading'>Loading...</div>";
+    
+    // Optimize the image before showing
+    optimizeImage(images[index], (optimizedSrc) => {
+      const imgElement = document.createElement("img");
+      imgElement.src = optimizedSrc;
+      imgElement.alt = `Page ${index + 1}`;
+      
+      // Set initial state based on direction
+      if (direction === 'next') {
+        imgElement.style.transform = 'rotateY(90deg)';
+      } else {
+        imgElement.style.transform = 'rotateY(-90deg)';
+      }
+      
+      // Clear previous content
+      flipbook.innerHTML = "";
+      flipbook.appendChild(imgElement);
+      
+      // Force browser to recognize the new element before animating
+      setTimeout(() => {
+        imgElement.style.transition = 'transform 0.6s ease';
+        imgElement.style.transform = 'rotateY(0deg)';
+        
+        // Update current page after animation completes
+        setTimeout(() => {
+          currentPage = index;
+          isAnimating = false;
+          updateButtons();
+        }, 600);
+      }, 50);
+    });
   }
 }
 

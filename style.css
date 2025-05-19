@@ -1,4 +1,4 @@
-/* Flipbook container */
+/* Flipbook outer wrapper for scaling and centering */
 .flipbook-wrapper {
   display: flex;
   justify-content: center;
@@ -8,25 +8,27 @@
   background-color: #f0f0f0;
 }
 
+/* Flipbook container with scale fix */
 .flipbook-container {
-  transform: scale(0.33); /* Adjust to match 33% zoom */
+  transform: scale(0.33); /* Scales to 33% */
   transform-origin: top center;
-  width: 300%;
+  width: 300%; /* Counteracts the scale for internal layout */
   height: 300%;
   display: flex;
   justify-content: center;
   align-items: center;
-  perspective: 1000px;
+  perspective: 1000px; /* 3D flip effect */
 }
 
-/* Flipbook display area */
+/* Flipbook content */
 #flipbook {
   max-width: 100%;
-  max-height: 90vh; /* Fixed missing semicolon */
+  max-height: 90vh;
   overflow: hidden;
   position: relative;
 }
 
+/* Flipbook image display */
 #flipbook img {
   width: 100%;
   height: auto;
@@ -35,29 +37,21 @@
   margin: 0 auto;
 }
 
-/* Flip animation enhancement */
+/* Flipping animation class */
 .flipping {
-  transform: rotateY(-30deg); /* More noticeable animation */
+  transform: rotateY(-30deg); /* More visible rotation */
 }
 
-/* Buttons styling (optional enhancement) */
+/* Navigation button styling (optional) */
 .buttons {
-  text-align: center;
+  display: flex;
+  justify-content: center;
   margin-top: 20px;
 }
 
 button {
   padding: 10px 20px;
-  margin: 5px;
-  font-size: 1.2rem;
+  font-size: 16px;
+  margin: 0 10px;
   cursor: pointer;
-}
-
-/* Optional loading text */
-.loading {
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-align: center;
-  color: #666;
-  padding: 40px;
 }

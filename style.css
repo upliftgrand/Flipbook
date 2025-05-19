@@ -42,7 +42,7 @@
   transform: rotateY(-30deg); /* More visible rotation */
 }
 
-/* Navigation button styling (optional) */
+/* Navigation button styling */
 .buttons {
   display: flex;
   justify-content: center;

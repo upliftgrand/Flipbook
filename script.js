@@ -1,441 +1,250 @@
-// script.js - Enhanced JavaScript for Uplift Grand Flipbook
 document.addEventListener('DOMContentLoaded', function() {
-    // Configuration - Change these values to match your book
-    const bookTitle = "Uplift Grand Magazine";
-    const totalPages = 20; // Update this based on your actual number of pages
-    let zoomLevel = 1;
-    let currentPage = 1;
+    // Flipbook elements
+    const flipbook = document.getElementById('flipbook');
+    const pages = document.querySelectorAll('.page');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const pageNum = document.getElementById('page-num');
+    const totalPages = document.getElementById('total-pages');
+    const zoomSlider = document.getElementById('zoom-slider');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
     
-    // Image paths - Update these with your actual image paths
-    function getPageImageUrl(pageNumber) {
-        // Cover pages
-        if (pageNumber === 1) {
-            return 'images/cover.jpg'; // Front cover
-        } else if (pageNumber === totalPages) {
-            return 'images/backcover.jpg'; // Back cover
-        } else {
-            // Regular pages - using numbered format (page2.jpg, page3.jpg, etc.)
-            return `images/page${pageNumber}.jpg`;
-        }
-    }
+    let currentPage = 0;
+    const numPages = pages.length;
+    totalPages.textContent = numPages;
     
-    // Create flipbook pages
-    function createPages() {
-        const flipbook = document.getElementById('flipbook');
-        
-        // Clear existing pages
-        flipbook.innerHTML = '';
-        
-        // Create loading indicator
-        const loadingIndicator = document.createElement('div');
-        loadingIndicator.className = 'loading-indicator';
-        loadingIndicator.textContent = 'Loading pages...';
-        document.querySelector('.flipbook-container').appendChild(loadingIndicator);
-        
-        // Add pages
-        for (let i = 1; i <= totalPages; i++) {
-            const pageElement = document.createElement('div');
+    // Initialize page positions
+    function initializePages() {
+        pages.forEach((page, index) => {
+            // Set z-index in reverse order so first pages are on top
+            page.style.zIndex = numPages - index;
             
-            // Make the first and last pages hard covers
-            if (i === 1 || i === totalPages) {
-                pageElement.className = 'hard';
-                
-                // Since we can't know if your images exist, start with placeholders
-                // and set up background images to load asynchronously
-                pageElement.style.backgroundColor = '#f0f0f0';
-                
-                const img = new Image();
-                img.onload = function() {
-                    pageElement.style.backgroundImage = `url('${getPageImageUrl(i)}')`;
-                };
-                img.onerror = function() {
-                    // If the image fails to load, use placeholder
-                    pageElement.style.backgroundImage = i === 1 ? 
-                        `url('https://via.placeholder.com/800x1200/f0f0f0/333333?text=Front+Cover')` : 
-                        `url('https://via.placeholder.com/800x1200/f0f0f0/333333?text=Back+Cover')`;
-                };
-                img.src = getPageImageUrl(i);
+            // Position even and odd pages differently
+            if (index === 0) {
+                // First page (cover)
+                page.style.transform = 'rotateY(0deg)';
+                page.style.left = '0';
+            } else if (index === numPages - 1) {
+                // Last page (back cover)
+                page.style.transform = 'rotateY(0deg)';
+                page.style.left = '50%';
+            } else if (index % 2 === 1) {
+                // Odd pages (right side)
+                page.style.transform = 'rotateY(0deg)';
+                page.style.left = '50%';
             } else {
-                // Regular pages
-                pageElement.style.backgroundColor = '#fff';
-                
-                const img = new Image();
-                img.onload = function() {
-                    pageElement.style.backgroundImage = `url('${getPageImageUrl(i)}')`;
-                };
-                img.onerror = function() {
-                    // If the image fails to load, use placeholder
-                    pageElement.style.backgroundImage = `url('https://via.placeholder.com/800x1200/ffffff/333333?text=Page+${i}')`;
-                };
-                img.src = getPageImageUrl(i);
+                // Even pages (left side)
+                page.style.transform = 'rotateY(0deg)';
+                page.style.left = '0';
             }
             
-            flipbook.appendChild(pageElement);
-        }
-        
-        // Set document title
-        document.title = bookTitle;
-    }
-    
-    // Initialize flipbook
-    function initFlipbook() {
-        createPages();
-        document.getElementById('total-pages').textContent = totalPages;
-        
-        // Set a small timeout to ensure DOM is ready
-        setTimeout(function() {
-            // Apply Turn.js to the flipbook
-            $('#flipbook').turn({
-                width: 922,
-                height: 600,
-                elevation: 50,
-                gradients: true,
-                autoCenter: true,
-                duration: 1000,
-                pages: totalPages,
-                when: {
-                    turning: function(e, page, view) {
-                        // Update current page
-                        currentPage = page;
-                        updatePageInfo();
-                        updateThumbnails();
-                    },
-                    turned: function(e, page, view) {
-                        // Update UI after page turn
-                        updateNavButtons();
-                        
-                        // Remove loading indicator if present
-                        const loadingIndicator = document.querySelector('.loading-indicator');
-                        if (loadingIndicator) {
-                            loadingIndicator.remove();
-                        }
-                    },
-                    start: function(e, pageObj) {
-                        // Add a specific class during animation
-                        document.body.classList.add('turning-page');
-                    },
-                    end: function(e, pageObj) {
-                        // Remove class after animation
-                        document.body.classList.remove('turning-page');
+            // Add click events to the page corners for turning
+            page.addEventListener('click', function(e) {
+                const rect = page.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Check if click is in the bottom right corner (approximately)
+                if (x > rect.width * 0.8 && y > rect.height * 0.8) {
+                    if (currentPage < numPages - 1) {
+                        nextPage();
+                    }
+                }
+                // Check if click is in the bottom left corner (approximately)
+                else if (x < rect.width * 0.2 && y > rect.height * 0.8) {
+                    if (currentPage > 0) {
+                        prevPage();
                     }
                 }
             });
-            
-            // Initialize controls and thumbnails
-            initControls();
-            createThumbnails();
-            updatePageInfo();
-            updateNavButtons();
-            
-            // Initial resize
-            resizeFlipbook();
-            
-            // Remove loading indicator after initialization
-            setTimeout(function() {
-                const loadingIndicator = document.querySelector('.loading-indicator');
-                if (loadingIndicator) {
-                    loadingIndicator.remove();
-                }
-            }, 1000);
-        }, 100);
+        });
+        
+        // Show only the current page pair
+        updatePageVisibility();
     }
     
-    // Initialize controls
-    function initControls() {
-        // Previous button
-        document.getElementById('prev-btn').addEventListener('click', function() {
-            $('#flipbook').turn('previous');
-        });
-        
-        // Next button
-        document.getElementById('next-btn').addEventListener('click', function() {
-            $('#flipbook').turn('next');
-        });
-        
-        // First page button
-        document.getElementById('first-btn').addEventListener('click', function() {
-            $('#flipbook').turn('page', 1);
-        });
-        
-        // Last page button
-        document.getElementById('last-btn').addEventListener('click', function() {
-            $('#flipbook').turn('page', totalPages);
-        });
-        
-        // Zoom in button
-        document.getElementById('zoom-in').addEventListener('click', function() {
-            zoomIn();
-        });
-        
-        // Zoom out button
-        document.getElementById('zoom-out').addEventListener('click', function() {
-            zoomOut();
-        });
-        
-        // Toggle thumbnails
-        document.getElementById('toggle-thumbnails').addEventListener('click', function() {
-            const thumbnails = document.querySelector('.thumbnails-container');
-            if (thumbnails.style.display === 'none' || thumbnails.style.display === '') {
-                thumbnails.style.display = 'flex';
-                updateThumbnails(); // Ensure active thumbnail is highlighted
+    // Update which pages are visible based on current page
+    function updatePageVisibility() {
+        pages.forEach((page, index) => {
+            // Determine if the page should be visible
+            if (index === currentPage || index === currentPage + 1) {
+                page.style.display = 'block';
+                page.style.zIndex = numPages - index;
             } else {
-                thumbnails.style.display = 'none';
-            }
-        });
-        
-        // Fullscreen button
-        document.getElementById('fullscreen-btn').addEventListener('click', function() {
-            toggleFullScreen();
-        });
-        
-        // Keyboard controls
-        document.addEventListener('keydown', function(e) {
-            // Don't process keystrokes if in an input field
-            if (e.target.tagName.toLowerCase() === 'input' || 
-                e.target.tagName.toLowerCase() === 'textarea') {
-                return;
-            }
-            
-            switch(e.keyCode || e.which) {
-                case 37: // left arrow
-                    $('#flipbook').turn('previous');
-                    break;
-                case 39: // right arrow
-                    $('#flipbook').turn('next');
-                    break;
-                case 36: // home
-                    $('#flipbook').turn('page', 1);
-                    break;
-                case 35: // end
-                    $('#flipbook').turn('page', totalPages);
-                    break;
-                case 107: // plus key
-                case 187: // plus key (with shift)
-                    zoomIn();
-                    break;
-                case 109: // minus key
-                case 189: // minus key (without shift)
-                    zoomOut();
-                    break;
-                default: return;
-            }
-            e.preventDefault();
-        });
-        
-        // Add touch swipe support for mobile
-        let startX, startY;
-        let distX, distY;
-        const threshold = 50; // Minimum distance to be considered a swipe
-        
-        document.addEventListener('touchstart', function(e) {
-            const touchobj = e.changedTouches[0];
-            startX = touchobj.pageX;
-            startY = touchobj.pageY;
-        }, false);
-        
-        document.addEventListener('touchmove', function(e) {
-            // Prevent page scroll while swiping in the flipbook area
-            if (e.target.closest('#flipbook')) {
-                e.preventDefault();
-            }
-        }, { passive: false });
-        
-        document.addEventListener('touchend', function(e) {
-            if (!e.target.closest('#flipbook')) return;
-            
-            const touchobj = e.changedTouches[0];
-            distX = touchobj.pageX - startX;
-            distY = touchobj.pageY - startY;
-            
-            // If horizontal distance is greater than vertical and greater than threshold
-            if (Math.abs(distX) > Math.abs(distY) && Math.abs(distX) > threshold) {
-                if (distX > 0) {
-                    // Swiped right, go to previous page
-                    $('#flipbook').turn('previous');
+                // Keep first and last page always in DOM for proper styling
+                if (index === 0 || index === numPages - 1) {
+                    page.style.display = 'block';
+                    page.style.zIndex = 0;
                 } else {
-                    // Swiped left, go to next page
-                    $('#flipbook').turn('next');
-                }
-                e.preventDefault();
-            }
-        }, false);
-    }
-    
-    // Create thumbnails
-    function createThumbnails() {
-        const container = document.querySelector('.thumbnails-container');
-        container.innerHTML = '';
-        
-        for (let i = 1; i <= totalPages; i++) {
-            const thumbnail = document.createElement('div');
-            thumbnail.className = 'thumbnail';
-            thumbnail.setAttribute('data-page', i);
-            
-            // Use the same image sources as the main pages
-            const img = new Image();
-            img.onload = function() {
-                thumbnail.style.backgroundImage = `url('${getPageImageUrl(i)}')`;
-            };
-            img.onerror = function() {
-                // If image fails to load, use placeholder
-                if (i === 1) {
-                    thumbnail.style.backgroundImage = `url('https://via.placeholder.com/150x200/f0f0f0/333333?text=Cover')`;
-                } else if (i === totalPages) {
-                    thumbnail.style.backgroundImage = `url('https://via.placeholder.com/150x200/f0f0f0/333333?text=Back')`;
-                } else {
-                    thumbnail.style.backgroundImage = `url('https://via.placeholder.com/150x200/ffffff/333333?text=${i}')`;
-                }
-            };
-            img.src = getPageImageUrl(i);
-            
-            thumbnail.addEventListener('click', function() {
-                const page = parseInt(this.getAttribute('data-page'));
-                $('#flipbook').turn('page', page);
-            });
-            
-            container.appendChild(thumbnail);
-        }
-        
-        updateThumbnails();
-    }
-    
-    // Update thumbnail highlighting
-    function updateThumbnails() {
-        const thumbnails = document.querySelectorAll('.thumbnail');
-        thumbnails.forEach(thumb => {
-            thumb.classList.remove('active');
-            if (parseInt(thumb.getAttribute('data-page')) === currentPage) {
-                thumb.classList.add('active');
-                
-                // Scroll the thumbnails container to center the active thumbnail
-                const container = document.querySelector('.thumbnails-container');
-                if (container.style.display !== 'none') {
-                    setTimeout(function() {
-                        container.scrollLeft = thumb.offsetLeft - container.clientWidth / 2 + thumb.clientWidth / 2;
-                    }, 100);
+                    page.style.display = 'none';
                 }
             }
         });
+        
+        // Update page number display
+        pageNum.textContent = Math.ceil((currentPage + 1) / 2);
+        
+        // Update button states
+        prevBtn.disabled = currentPage <= 0;
+        nextBtn.disabled = currentPage >= numPages - 2;
     }
     
-    // Update page information
-    function updatePageInfo() {
-        document.getElementById('current-page').textContent = currentPage;
-    }
-    
-    // Update navigation buttons
-    function updateNavButtons() {
-        document.getElementById('prev-btn').disabled = currentPage === 1;
-        document.getElementById('next-btn').disabled = currentPage === totalPages;
-        document.getElementById('first-btn').disabled = currentPage === 1;
-        document.getElementById('last-btn').disabled = currentPage === totalPages;
-    }
-    
-    // Zoom in function
-    function zoomIn() {
-        if (zoomLevel < 2) {
-            zoomLevel += 0.2;
-            applyZoom();
+    // Go to previous page with animation
+    function prevPage() {
+        if (currentPage > 0) {
+            // For smooth animation
+            const pageToTurn = pages[currentPage];
+            
+            if (currentPage % 2 === 0) {
+                // If on even page, go back 2 pages
+                currentPage -= 2;
+            } else {
+                // If on odd page, go back 1 page
+                currentPage -= 1;
+            }
+            
+            // Add turning animation
+            pageToTurn.classList.add('turning');
+            setTimeout(() => {
+                pageToTurn.classList.remove('turning');
+                updatePageVisibility();
+            }, 500);
+            
+            updatePageVisibility();
         }
     }
     
-    // Zoom out function
-    function zoomOut() {
-        if (zoomLevel > 0.6) {
-            zoomLevel -= 0.2;
-            applyZoom();
+    // Go to next page with animation
+    function nextPage() {
+        if (currentPage < numPages - 2) {
+            // For smooth animation
+            const pageToTurn = pages[currentPage + 1];
+            
+            if (currentPage % 2 === 0) {
+                // If on even page, go forward 1 page
+                currentPage += 1;
+            } else {
+                // If on odd page, go forward 2 pages
+                currentPage += 2;
+            }
+            
+            // Add turning animation
+            pageToTurn.classList.add('turning');
+            setTimeout(() => {
+                pageToTurn.classList.remove('turning');
+                updatePageVisibility();
+            }, 500);
+            
+            updatePageVisibility();
         }
     }
     
-    // Apply zoom level
-    function applyZoom() {
-        document.getElementById('flipbook').style.transform = `scale(${zoomLevel})`;
-    }
+    // Navigation buttons event listeners
+    prevBtn.addEventListener('click', prevPage);
+    nextBtn.addEventListener('click', nextPage);
     
-    // Toggle fullscreen
-    function toggleFullScreen() {
-        const fullscreenBtn = document.getElementById('fullscreen-btn');
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft') {
+            prevPage();
+        } else if (e.key === 'ArrowRight') {
+            nextPage();
+        }
+    });
+    
+    // Zoom functionality
+    zoomSlider.addEventListener('input', function() {
+        const zoomLevel = parseFloat(this.value);
+        flipbook.style.transform = `scale(${zoomLevel})`;
+    });
+    
+    // Fullscreen functionality
+    fullscreenBtn.addEventListener('click', function() {
         const container = document.querySelector('.flipbook-container');
         
-        if (!document.fullscreenElement && 
-            !document.mozFullScreenElement && 
-            !document.webkitFullscreenElement && 
-            !document.msFullscreenElement) {
+        if (!document.fullscreenElement) {
             // Enter fullscreen
             if (container.requestFullscreen) {
                 container.requestFullscreen();
-            } else if (container.msRequestFullscreen) {
-                container.msRequestFullscreen();
-            } else if (container.mozRequestFullScreen) {
+            } else if (container.mozRequestFullScreen) { // Firefox
                 container.mozRequestFullScreen();
-            } else if (container.webkitRequestFullscreen) {
-                container.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            } else if (container.webkitRequestFullscreen) { // Chrome, Safari, Opera
+                container.webkitRequestFullscreen();
+            } else if (container.msRequestFullscreen) { // IE/Edge
+                container.msRequestFullscreen();
             }
-            fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+            fullscreenBtn.textContent = 'Exit Fullscreen';
         } else {
             // Exit fullscreen
             if (document.exitFullscreen) {
                 document.exitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
             } else if (document.mozCancelFullScreen) {
                 document.mozCancelFullScreen();
             } else if (document.webkitExitFullscreen) {
                 document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
             }
-            fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+            fullscreenBtn.textContent = 'Fullscreen';
         }
-        
-        // Resize flipbook after fullscreen change
-        setTimeout(resizeFlipbook, 1000);
+    });
+    
+    // Handle fullscreen changes
+    document.addEventListener('fullscreenchange', updateFullscreenButtonText);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenButtonText);
+    document.addEventListener('mozfullscreenchange', updateFullscreenButtonText);
+    document.addEventListener('MSFullscreenChange', updateFullscreenButtonText);
+    
+    function updateFullscreenButtonText() {
+        if (document.fullscreenElement) {
+            fullscreenBtn.textContent = 'Exit Fullscreen';
+        } else {
+            fullscreenBtn.textContent = 'Fullscreen';
+        }
     }
     
-    // Function to resize the flipbook based on window size
-    function resizeFlipbook() {
-        const container = document.querySelector('.flipbook-container');
-        const containerWidth = container.clientWidth;
-        const containerHeight = container.clientHeight;
+    // Touch events for mobile
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    flipbook.addEventListener('touchstart', function(e) {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+    
+    flipbook.addEventListener('touchend', function(e) {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    });
+    
+    function handleSwipe() {
+        const swipeThreshold = 50;
         
-        // Calculate appropriate dimensions while maintaining aspect ratio
-        let width = containerWidth * 0.9;
-        let height = width * 0.65; // Maintain aspect ratio
-        
-        if (height > containerHeight * 0.8) {
-            height = containerHeight * 0.8;
-            width = height / 0.65;
-        }
-        
-        // Only resize if Turn.js is initialized
-        if ($('#flipbook').turn('is')) {
-            $('#flipbook').turn('size', width, height);
-            
-            // Center the flipbook
-            const flipbook = document.getElementById('flipbook');
-            flipbook.style.top = ((containerHeight - height) / 2) + 'px';
-            flipbook.style.left = ((containerWidth - width) / 2) + 'px';
+        if (touchEndX < touchStartX - swipeThreshold) {
+            // Swipe left
+            nextPage();
+        } else if (touchEndX > touchStartX + swipeThreshold) {
+            // Swipe right
+            prevPage();
         }
     }
     
     // Handle window resize
-    let resizeTimer;
     window.addEventListener('resize', function() {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function() {
-            resizeFlipbook();
-        }, 250);
+        // Adjust flipbook size if needed
+        const container = document.querySelector('.flipbook-container');
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+        
+        // Maintain aspect ratio if needed
+        // You can add specific code here if you want to maintain a certain aspect ratio
     });
-    
-    // Handle orientation change on mobile devices
-    window.addEventListener('orientationchange', function() {
-        setTimeout(resizeFlipbook, 500);
-    });
-    
-    // Handle fullscreen change
-    document.addEventListener('fullscreenchange', resizeFlipbook);
-    document.addEventListener('webkitfullscreenchange', resizeFlipbook);
-    document.addEventListener('mozfullscreenchange', resizeFlipbook);
-    document.addEventListener('MSFullscreenChange', resizeFlipbook);
     
     // Initialize the flipbook
-    initFlipbook();
+    initializePages();
+    
+    // Error handling
+    window.addEventListener('error', function(e) {
+        console.error('Flipbook error:', e.message);
+        // You could display a user-friendly error message here
+    });
 });
